@@ -14,7 +14,9 @@ def clean_checklist(df):
     df.drop_duplicates(subset ="Unique",keep = 'first', inplace = True)
     # Rearange columns
     df = df.reindex(
-        columns = ['Unique'] + [col for col in df.columns if col != 'Machine' and col != 'Unique'] + ['Machine']
+        columns = ['Unique'] + 
+            [col for col in df.columns if col != 'Machine' and col != 'Unique'] + 
+            ['Machine']
         )
     # machines = df['Machine'].str.split(' ', n=10, expand=True)
     # machine_cols = len(machines.axes[1])
@@ -25,30 +27,43 @@ def clean_checklist(df):
 
 def checklist_info(df):
     part_num = df.NP.unique()
+    # get total number of circuits
     qty = [ df[df['NP'] == i ]['Nº de circuito'].count()
             for i in part_num ]
+    # get number of automatic
     corte = [ df[(df['NP'] == i ) & (df['Machine'].str.startswith('A'))]['Nº de circuito'].count()
               for i in part_num]
+    # corte rivian
     riv = [ df[(df['NP'] == i ) & (df['Machine'].str.startswith('B'))]['Nº de circuito'].count()
             for i in part_num]
+    # circuitos de blindaje
     sl = [ df[(df['NP'] == i )&(df['Machine'].str.startswith('SLD'))]['Nº de circuito'].count()
            for i in part_num]
+    # joint Sld
     joint_sld = [ df[(df['NP'] == i )&(df['Nº de circuito'].str.endswith('#')) & (df['Terminal(L)'].str.startswith('TKT'))]['Nº de circuito'].count() +
-                  df[(df['NP'] == i )&(df['Nº de circuito'].str.endswith('#')) & (df['Terminal(R)'].str.startswith('TKT'))]['Nº de circuito'].count()               
+                  df[(df['NP'] == i )&(df['Nº de circuito'].str.endswith('#')) & (df['Terminal(R)'].str.startswith('TKT'))]['Nº de circuito'].count()
                   for i in part_num]
+    # pret
     pret = [ df[(df['NP'] == i )&(df['Materia'].str.contains('XXXX'))]['Nº de circuito'].count()
            for i in part_num]
+    # pret LG
     pret_lg = [ df[(df['NP'] == i )&(df['Materia'].str.contains('XXXY6'))]['Nº de circuito'].count()
            for i in part_num]
+    # termistor
     termistor = [ df[(df['NP'] == i )&(df['Materia'].str.contains('XXXG'))]['Nº de circuito'].count()
            for i in part_num]
+    #twister
     twist = [ df[(df['NP'] == i )&(df['Machine'].str.contains('TW'))]['Nº de circuito'].count()
+           for i in part_num]
+    encinte_joint = [ df[(df['NP'] == i ) & (df['Machine'].str.contains('SJ')) & (df['Machine'].str.contains('T0'))]['Nº de circuito'].count()
+           for i in part_num]
+    encinte_sld = [ df[(df['NP'] == i ) & (df['Materia'].str.contains('SLD')) & (df['Machine'].str.contains('T0'))]['Nº de circuito'].count()
            for i in part_num]
     sld = []
     for i in range(len(sl)):
         sld.append(sl[i] - (pret[i] + pret_lg[i]))
-    df = pd.DataFrame(list(zip(part_num, qty, corte, riv, sld,joint_sld, pret, pret_lg, termistor, twist)),
-                      columns=['PN', 'QTY', 'Corte', 'RIVIAN', 'SLD', 'JOINT SLD', 'PRET', 'PRET LG', 'TERMISTOR', 'TWIST'])
+    df = pd.DataFrame(list(zip(part_num, qty, corte, riv, sld,joint_sld, pret, pret_lg, termistor, twist, encinte_joint)),
+                      columns=['PN', 'QTY', 'Corte', 'RIVIAN', 'SLD', 'JOINT SLD', 'PRET', 'PRET LG', 'TERMISTOR', 'TWIST', 'ECINTE AUTOMATICO'])
     return df
 
 def clean_manual(df):
